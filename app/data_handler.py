@@ -3,6 +3,9 @@ data_handler.py
 
 Module responsible for fetching and preprocessing historical financial market data
 for use in backtesting trading strategies.
+
+This is done by dropping rows with missing values or raising an error if there was 
+no data found for the ticker or if there was a failure fetching the data.
 """
 
 import yfinance as yf
