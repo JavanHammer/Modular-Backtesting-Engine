@@ -18,35 +18,35 @@ class DataHandler:
     Methods
     -------
     fetch_data(ticker: str, start_date: str, end_date: str) -> pd.DataFrame
-        Fetches historical OHLCV stock data for a specified ticker and time period.
+        Fetches historical stock data for a specified ticker and time period.
     """
 
     def __init__(self):
         """
-        Initializes the DataHandler class.
+        Initializes the DataHandler class for fetching data.
 
-        Currently, no parameters are required. This structure allows future
-        extension to support multiple data sources (e.g., IEX, Tiingo).
+        No parameters are required. This class is for tailored for retrieving
+        historical market data using the yfinance API.
         """
         pass
 
-    def fetch_data(self, ticker: str, start_date: str, end_date: str) -> pd.DataFrame:
+    def fetch_data(self, ticker: str, start_date: str = '2024-01-01', end_date: str = '2024-12-31') -> pd.DataFrame:
         """
-        Fetch historical stock data for a given ticker symbol using Yahoo Finance.
+        Fetches historical stock data for a given ticker symbol using Yahoo Finance.
 
         Parameters
         ----------
         ticker : str
-            The stock ticker symbol (e.g., 'AAPL').
+            The stock ticker symbol (ex 'AAPL').
         start_date : str
-            The start date in 'YYYY-MM-DD' format.
+            The start date in 'YYYY-MM-DD' format. Defaults to '2024-01-01'.
         end_date : str
-            The end date in 'YYYY-MM-DD' format.
+            The end date in 'YYYY-MM-DD' format. Defaults to '2024-12-31'.
 
         Returns
         -------
         pd.DataFrame
-            A DataFrame containing the stock's historical OHLCV data.
+            A Dataframe containing the stock's historical data.
 
         Raises
         ------
@@ -67,5 +67,6 @@ class DataHandler:
 
             return df
         
+        # Tells user that the module failed to fetch the data
         except Exception as e:
             raise RuntimeError(f"Failed to fetch data for {ticker}: {str(e)}")
