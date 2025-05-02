@@ -1,32 +1,24 @@
 """
-test_data_handler.py
-
-Tests the DataHandler class in data_handler.py.
+Unit tests for the DataHandler class in data_handler.py
 """
 
+import pandas as pd
 from app.data_handler import DataHandler
 
-def test_fetch_data():
-    """
-    Tests the fetch_data method of the DataHandler class.
-    """
-    # Create an instance of DataHandler
-    dh = DataHandler()
+def test_datahandler_load_csv_data():
+    """Test that DataHandler loads data correctly from a CSV file."""
+    handler = DataHandler(ticker="sample_data.csv", source="csv")
+    data = handler.load_data()
+    
+    assert isinstance(data, pd.DataFrame)
+    assert not data.empty
+    assert "Close" in data.columns
 
-    # Define the parameters (one year is fine)
-    ticker = "AAPL"
-    start_date = "2023-01-01"
-    end_date = "2023-12-31"
-
-    # Fetch the data
-    try:
-        df = dh.fetch_data(ticker, start_date, end_date)
-        print(df.head())  # Print the first 5 rows to verify
-        print("\nDataHandler test passed successfully")
-
-    except Exception as e:
-        print(f"\nDataHandler test failed: {str(e)}")
-
-# Ensures this test only runs when the script is executed directly
-if __name__ == "__main__":
-    test_fetch_data()
+def test_datahandler_load_yahoo_data():
+    """Test that DataHandler loads data correctly from Yahoo Finance."""
+    handler = DataHandler(ticker="AAPL", source="yahoo")
+    data = handler.load_data()
+    
+    assert isinstance(data, pd.DataFrame)
+    assert not data.empty
+    assert "Close" in data.columns
