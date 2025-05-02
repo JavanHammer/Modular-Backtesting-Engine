@@ -6,7 +6,9 @@ Command-line interface for running the backtesting engine.
 Allows the user to select a trading strategy, input stock ticker,
 and execute a backtest using the modular backtesting system.
 """
-
+import os
+import numpy as np
+from datetime import datetime
 from app.controller import Controller
 
 def main():
@@ -81,8 +83,57 @@ def main():
             strategy_params=strategy_params
         )
 
-        # Display results
+        # Display the first few rows of results
         print(results.head())
+
+        # ===============================
+        # Calculate and display performance metrics
+        # ===============================
+
+        # Calculate daily returns
+        results['Returns'] = results['Equity'].pct_change()
+
+        # Calculate performance metrics
+        cumulative_return = results['Equity'].iloc[-1] / results['Equity'].iloc[0] - 1
+        annualized_return = (1 + cumulative_return) ** (252 / len(results)) - 1
+        annualized_volatility = results['Returns'].std() * np.sqrt(252)
+        sharpe_ratio = annualized_return / annualized_volatility if annualized_volatility != 0 else 0
+        max_drawdown = ((results['Equity'].cummax() - results['Equity']) / results['Equity'].cummax()).max()
+
+        # Prepare performance summary
+        performance_summary = {
+            "Cumulative Return (%)": cumulative_return * 100,
+            "Annualized Return (%)": annualized_return * 100,
+            "Annualized Volatility (%)": annualized_volatility * 100,
+            "Sharpe Ratio": sharpe_ratio,
+            "Max Drawdown (%)": max_drawdown * 100
+        }
+
+        # Print performance summary
+        print("\nPerformance Summary:")
+        for metric, value in performance_summary.items():
+            print(f"{metric}: {value:.2f}")
+
+        # ===============================
+        # Save results to /performance/ folder
+        # ===============================
+
+        # Copy results DataFrame and add performance metrics
+        results_to_save = results.copy()
+        for metric, value in performance_summary.items():
+            results_to_save[metric] = value
+
+        # Create performance directory if it doesn't exist
+        os.makedirs('performance', exist_ok=True)
+
+        # Generate filename with timestamp
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        filename = f"performance/{ticker}_{strategy_name}_{timestamp}.csv"
+
+        # Save to CSV
+        results_to_save.to_csv(filename)
+
+        print(f"\nResults saved to {filename}")
 
     except Exception as e:
         print(f"\nAn error occurred during the backtest: {str(e)}")
