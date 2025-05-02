@@ -2,52 +2,49 @@
 backtester.py
 
 Module responsible for simulating the execution of trading strategies using historical
-price data and predefined signals (from strategy.py).
+price data and strategy decision logic (buy/sell conditions).
 
-This module calculates changes in portfolio cash, positions, and total equity over time.
-It assumes trades are executed using closing prices and that one share is bought/sold per signal.
+This module tracks portfolio cash, position holdings, and total equity over time,
+assuming trades are executed at the daily closing price.
 """
 
 import pandas as pd
 
 class Backtester:
     """
-    A class to simulate the execution of trading signals on historical data.
+    A class to simulate the execution of trading strategies on historical market data.
 
     Parameters
     ----------
     data : pd.DataFrame
         Historical market data containing at least a 'Close' column.
-    signals : pd.Series
-        Series of trading signals indexed by date. Values: 1 (buy), -1 (sell), 0 (hold).
+    strategy : object
+        Strategy instance that implements should_buy(row) and should_sell(row) methods.
     initial_cash : float
-        Starting cash for the portfolio (default is 100,000).
+        Starting cash amount for the portfolio (default is 100,000).
 
     Attributes
     ----------
+    data : pd.DataFrame
+        The historical market data used for the backtest.
+    strategy : object
+        The trading strategy instance applied during the backtest.
+    initial_cash : float
+        The starting portfolio cash amount.
     cash : float
-        Remaining cash in the portfolio.
+        Current available cash during the backtest.
     position : int
         Number of shares currently held.
     equity_curve : list
-        Tracks the total value (cash + position*price) over time.
+        List of (date, total equity) tracking portfolio value over time.
     """
 
-    def __init__(self, data: pd.DataFrame, signals: pd.Series, initial_cash: float = 100000.0):
+    def __init__(self, data: pd.DataFrame, strategy: object, initial_cash: float = 100000.0):
         """
-        Initializes the Backtester instance with price data, signals, and starting capital.
-
-        Parameters
-        ----------
-        data : pd.DataFrame
-            Historical price data, must include a 'Close' column.
-        signals : pd.Series
-            Buy/sell/hold signals indexed by date.
-        initial_cash : float
-            Starting capital (default is 100,000).
+        Initializes the Backtester instance with market data, a trading strategy, and starting capital.
         """
         self.data = data
-        self.signals = signals
+        self.strategy = strategy
         self.initial_cash = initial_cash
         self.cash = initial_cash
         self.position = 0
@@ -55,37 +52,39 @@ class Backtester:
 
     def run_backtest(self) -> pd.DataFrame:
         """
-        Executes the trading simulation over the historical data.
+        Runs the trading simulation over the historical data.
 
         For each day:
-        - Buys 1 share if signal == 1 and there's enough cash.
-        - Sells 1 share if signal == -1 and a position is held.
-        - Holds if signal == 0 or if no trade can be made.
-
-        Tracks daily portfolio value and returns a Dataframe of the equity curve.
+        - Evaluates the strategy's buy/sell logic.
+        - Executes trades at the daily close price.
+        - Updates cash, positions, and total equity.
 
         Returns
         -------
         pd.DataFrame
-            Dataframe with two columns: 'Date' and 'Equity', indexed by date.
+            DataFrame containing 'Date' and 'Equity', indexed by date.
         """
-        # This loop iterates over the data frame
-        for date, row in self.data.iterrows():
-            price = row['Close']
-            signal = self.signals.get(date, 0)
 
-            # Buys one share if there is enough cash
-            if signal == 1 and self.cash >= price:
+        # Loop through each day in the dataset
+        for idx, (date, row) in enumerate(self.data.iterrows()):
+
+            price = row['Close']
+
+            # Check if strategy signals a buy
+            if self.strategy.should_buy(row) and self.cash >= price:
                 self.position += 1
                 self.cash -= price
 
-            # Sells a share if we hold one
-            elif signal == -1 and self.position > 0:
+            # Check if strategy signals a sell
+            elif self.strategy.should_sell(row) and self.position > 0:
                 self.position -= 1
                 self.cash += price
 
-            # Calculate equity as: cash + (shares * close price)
+            # Calculate current total equity: cash + (number of shares * current close price)
             total_equity = self.cash + self.position * price
+
+            # Record the date and total equity
             self.equity_curve.append((date, total_equity))
 
+        # Convert equity history into a DataFrame for output
         return pd.DataFrame(self.equity_curve, columns=['Date', 'Equity']).set_index('Date')
