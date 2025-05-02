@@ -14,6 +14,11 @@ class Backtester:
     """
     A class to simulate the execution of trading strategies on historical market data.
 
+    Purpose
+    -------
+    Simulates trading decisions day-by-day using strategy buy/sell signals, and tracks 
+    portfolio value over the backtest period.
+
     Parameters
     ----------
     data : pd.DataFrame
@@ -49,6 +54,54 @@ class Backtester:
         self.cash = initial_cash
         self.position = 0
         self.equity_curve = []
+
+        # Validate data sufficiency for the selected strategy
+        self._validate_data_for_strategy()
+
+    def _validate_data_for_strategy(self):
+        """
+        Validates that there is enough historical data to support the selected strategy.
+        Raises an error if not enough data is available.
+        """
+
+        # SMA Crossover Strategy check
+        if hasattr(self.strategy, "long_window"):
+            if len(self.data) < self.strategy.long_window:
+                raise ValueError(
+                    f"Not enough data ({len(self.data)} rows) for SMA Crossover strategy. "
+                    f"Requires at least {self.strategy.long_window} days of data."
+                )
+
+        # RSI Threshold Strategy check
+        if hasattr(self.strategy, "data") and 'RSI' in self.strategy.data.columns:
+            if len(self.data) < 14:  # Assuming default RSI period
+                raise ValueError(
+                    "Not enough data for RSI Threshold strategy. Requires at least 14 days of data."
+                )
+
+        # Golden Cross Strategy check
+        if hasattr(self.strategy, "data") and 'sma_200' in self.strategy.data.columns:
+            if len(self.data) < 200:
+                raise ValueError(
+                    "Not enough data for Golden Cross strategy. Requires at least 200 days of data."
+                )
+
+        # Momentum Strategy (Rate of Change) check
+        if hasattr(self.strategy, "roc_period"):
+            if len(self.data) < self.strategy.roc_period:
+                raise ValueError(
+                    f"Not enough data ({len(self.data)} rows) for Momentum strategy. "
+                    f"Requires at least {self.strategy.roc_period} days of data."
+                )
+
+        # Breakout Strategy check
+        if hasattr(self.strategy, "entry_period") and hasattr(self.strategy, "exit_period"):
+            required_days = max(self.strategy.entry_period, self.strategy.exit_period)
+            if len(self.data) < required_days:
+                raise ValueError(
+                    f"Not enough data ({len(self.data)} rows) for Breakout strategy. "
+                    f"Requires at least {required_days} days of data."
+                )
 
     def run_backtest(self) -> pd.DataFrame:
         """
