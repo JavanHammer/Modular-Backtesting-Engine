@@ -45,30 +45,32 @@ class SMACrossoverStrategy:
         """
         Determines whether to buy based on SMA crossover.
         """
-        idx = row.name
+        # Get the integer location of the current row
+        row_idx = self.data.index.get_loc(row.name)
 
-        # Prevents index error on the first row
-        if idx == 0:
+        # Prevents error on the very first row
+        if row_idx == 0:
             return False
-        
-        # Get prev row's SMA values
-        prev = self.data.iloc[idx - 1]
 
-        # Buy signal: short SMA crosses above long SMA
+        # Get previous row's short and long SMA values
+        prev = self.data.iloc[row_idx - 1]
+
+        # Buy if short SMA crosses above long SMA
         return (prev['short_sma'] <= prev['long_sma']) and (row['short_sma'] > row['long_sma'])
 
     def should_sell(self, row: pd.Series) -> bool:
         """
         Determines whether to sell based on SMA crossover.
         """
-        idx = row.name
+        # Get the integer location of the current row
+        row_idx = self.data.index.get_loc(row.name)
 
-        # Prevents index error on the first row
-        if idx == 0:
+        # Prevents error on the very first row
+        if row_idx == 0:
             return False
-        
-        # Get prev row's SMA values
-        prev = self.data.iloc[idx - 1]
 
-        # Sell signal: short SMA crosses below long SMA
+        # Get previous row's short and long SMA values
+        prev = self.data.iloc[row_idx - 1]
+
+        # Sell if short SMA crosses below long SMA
         return (prev['short_sma'] >= prev['long_sma']) and (row['short_sma'] < row['long_sma'])

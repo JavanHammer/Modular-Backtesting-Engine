@@ -16,7 +16,7 @@ def test_controller_run_backtest_and_metrics(monkeypatch):
         "long_sma": [100, 101, 101, 103, 105]
     })
 
-    def mock_fetch_data(self, ticker, start_date=None, end_date=None):
+    def mock_fetch_data(self):
         return dummy_data # My hardcoded dataframe
 
     from app.data_handler import DataHandler

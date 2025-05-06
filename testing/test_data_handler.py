@@ -20,7 +20,8 @@ def test_datahandler_fetch_data(monkeypatch):
     monkeypatch.setattr(yf, "download", mock_download)
 
     handler = DataHandler()
-    df = handler.fetch_data(ticker="AAPL")
+    handler.data = dummy_data
+    df = handler.fetch_data()
 
     assert isinstance(df, pd.DataFrame)
     assert "Close" in df.columns

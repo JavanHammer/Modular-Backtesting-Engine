@@ -1,121 +1,84 @@
 """
 data_handler.py
 
-Module responsible for fetching and loading historical market data 
-either from Yahoo Finance or from a local CSV file.
+Module responsible for fetching and preparing financial data
+either from Yahoo Finance API or from a local CSV file.
 """
 
 import pandas as pd
 import yfinance as yf
-from datetime import datetime, timedelta
 
 class DataHandler:
     """
-    A class to fetch and preprocess market data for backtesting.
+    A class to handle data loading from different sources.
 
     Parameters
     ----------
     source : str
-        Source of data ('yahoo' or 'csv').
+        The data source to use ('yahoo' or 'csv').
 
     Attributes
     ----------
     source : str
-        Data source being used.
+        Data source identifier ('yahoo' or 'csv').
+    data : pd.DataFrame
+        Loaded historical market data.
     """
 
     def __init__(self, source: str = "yahoo"):
         """
-        Initializes the DataHandler with a specified data source.
+        Initialize the DataHandler instance.
 
         Parameters
         ----------
         source : str, optional
-            Data source ('yahoo' or 'csv'), default is 'yahoo'.
+            Data source to use ('yahoo' or 'csv'), default is 'yahoo'.
         """
         self.source = source
+        self.data = None
 
-    def fetch_data(self, ticker: str, start_date: str = None, end_date: str = None) -> pd.DataFrame:
+    def load_data(self, source_identifier: str):
         """
-        Fetches and preprocesses historical stock data.
+        Loads data from the appropriate source based on source type.
 
         Parameters
         ----------
-        ticker : str
-            Stock ticker (if using Yahoo) or CSV file path (if using CSV).
-        start_date : str, optional
-            Start date for Yahoo Finance download (format 'YYYY-MM-DD').
-        end_date : str, optional
-            End date for Yahoo Finance download (format 'YYYY-MM-DD').
+        source_identifier : str
+            Ticker symbol (for Yahoo) or CSV file path (for CSV).
 
         Returns
         -------
-        pd.DataFrame
-            A DataFrame containing historical price data.
-
-        Raises
-        ------
-        RuntimeError
-            If the data cannot be fetched or is empty.
+        None
         """
-
-        # Determine which fetching method to use based on the source
         if self.source == "yahoo":
-            return self._fetch_from_yahoo(ticker, start_date, end_date)
+            self.data = self.fetch_yahoo_data(source_identifier)
         elif self.source == "csv":
-            return self._fetch_from_csv(ticker)
+            self.data = self.fetch_csv_data(source_identifier)
         else:
-            raise ValueError(f"Unsupported data source: {self.source}")
+            raise ValueError(f"Unsupported source type: {self.source}")
 
-    def _fetch_from_yahoo(self, ticker: str, start_date: str = None, end_date: str = None) -> pd.DataFrame:
+    def fetch_yahoo_data(self, ticker: str) -> pd.DataFrame:
         """
-        Fetch data from Yahoo Finance.
+        Fetch historical data for a given stock ticker from Yahoo Finance.
 
         Parameters
         ----------
         ticker : str
             Stock ticker symbol.
-        start_date : str, optional
-            Start date for data (defaults to 3 years ago).
-        end_date : str, optional
-            End date for data (defaults to yesterday).
 
         Returns
         -------
         pd.DataFrame
-            Historical market data.
-
-        Raises
-        ------
-        RuntimeError
-            If data fetching fails.
+            Historical daily price data.
         """
+        df = yf.download(ticker, period="3y", interval="1d")
+        df = df[["Close"]].dropna()
+        df.index.name = "Date"
+        return df
 
-        # Set default date range if none provided
-        if start_date is None:
-            start_date = (datetime.today() - timedelta(days=3*365 + 1)).strftime('%Y-%m-%d')
-        if end_date is None:
-            end_date = (datetime.today() - timedelta(days=1)).strftime('%Y-%m-%d')
-
-        try:
-            # Attempt to download stock data
-            df = yf.download(ticker, start=start_date, end=end_date)
-
-            # Raise an error if no data was returned
-            if df.empty:
-                raise ValueError(f"No data found for ticker: {ticker}")
-
-            # Drop any rows with missing values
-            df.dropna(inplace=True)
-
-            return df
-
-        except Exception as e:
-            raise RuntimeError(f"Failed to fetch data for {ticker}: {str(e)}")
-
-    def _fetch_from_csv(self, file_path: str) -> pd.DataFrame:
+    def fetch_csv_data(self, file_path: str) -> pd.DataFrame:
         """
-        Fetch data from a local CSV file.
+        Load historical data from a local CSV file.
 
         Parameters
         ----------
@@ -125,21 +88,21 @@ class DataHandler:
         Returns
         -------
         pd.DataFrame
-            Historical market data from CSV.
-
-        Raises
-        ------
-        RuntimeError
-            If reading the CSV fails.
+            Historical daily price data.
         """
-        try:
-            # Attempt to load CSV file
-            df = pd.read_csv(file_path, index_col=0, parse_dates=True)
+        df = pd.read_csv(file_path, parse_dates=["Date"], index_col="Date")
+        df = df[["Close"]].dropna()
+        return df
 
-            # Drop any rows with missing values
-            df.dropna(inplace=True)
+    def fetch_data(self) -> pd.DataFrame:
+        """
+        Returns the currently loaded market data.
 
-            return df
-
-        except Exception as e:
-            raise RuntimeError(f"Failed to read CSV file {file_path}: {str(e)}")
+        Returns
+        -------
+        pd.DataFrame
+            Historical daily price data.
+        """
+        if self.data is None:
+            raise ValueError("No data loaded. Please call load_data() first.")
+        return self.data

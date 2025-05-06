@@ -3,8 +3,6 @@ controller.py
 
 Module responsible for orchestrating the data retrieval, strategy initialization,
 backtest execution, and result handling for the backtesting engine.
-
-This acts as the central manager coordinating different modules together.
 """
 
 import pandas as pd
@@ -43,16 +41,19 @@ class Controller:
         source : str, optional
             Data source to use ('yahoo' or 'csv'), default is 'yahoo'.
         """
+        self.source = source  # Save the source type
         self.data_handler = DataHandler(source=source)
 
-    def run_backtest(self, ticker: str, strategy_name: str, strategy_params: dict, initial_cash: float = 100000.0) -> tuple:
+    def run_backtest(self, ticker: str = None, source_path: str = None, strategy_name: str = None, strategy_params: dict = None, initial_cash: float = 100000.0) -> tuple:
         """
         Runs the full backtesting workflow based on user input.
 
         Parameters
         ----------
         ticker : str
-            The stock ticker symbol or CSV file name to fetch data for.
+            The stock ticker symbol to fetch data for (Yahoo).
+        source_path : str
+            The CSV file path to load data from (CSV).
         strategy_name : str
             The name of the strategy to use ('sma_crossover', 'rsi_threshold', etc.).
         strategy_params : dict
@@ -66,8 +67,14 @@ class Controller:
             Tuple containing the equity curve DataFrame and performance metrics dictionary.
         """
 
+        # Load data based on source
+        if self.source == "yahoo":
+            self.data_handler.load_data(ticker)
+        elif self.source == "csv":
+            self.data_handler.load_data(source_path)
+
         # Fetch historical data
-        data = self.data_handler.fetch_data(ticker)
+        data = self.data_handler.fetch_data()
 
         # Initialize the selected strategy
         strategy = self._initialize_strategy(strategy_name, data, strategy_params)

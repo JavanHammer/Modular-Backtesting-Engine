@@ -63,7 +63,6 @@ class Backtester:
         Validates that there is enough historical data to support the selected strategy.
         Raises an error if not enough data is available.
         """
-
         # SMA Crossover Strategy check
         if hasattr(self.strategy, "long_window"):
             if len(self.data) < self.strategy.long_window:
@@ -119,8 +118,7 @@ class Backtester:
         """
 
         # Loop through each day in the dataset
-        for idx, (date, row) in enumerate(self.data.iterrows()):
-
+        for row_idx, (date, row) in enumerate(self.data.iterrows()):
             price = row['Close']
 
             # Check if strategy signals a buy

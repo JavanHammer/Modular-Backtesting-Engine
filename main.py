@@ -24,12 +24,16 @@ def main():
 
     source_choice = input("\nEnter 1 or 2: ").strip()
 
+    ticker = None  # Default
+    csv_path = None  # Default
+
     if source_choice == "1":
         source = "yahoo"
         ticker = input("\nEnter the stock ticker symbol (ex. AAPL, MSFT, TSLA): ").strip().upper()
     elif source_choice == "2":
         source = "csv"
-        ticker = input("\nEnter the path to your local CSV file (ex. data/sample.csv): ").strip()
+        csv_filename = input("Enter the CSV filename (just the file name, e.g., 'sample_prices.csv'): ").strip()
+        csv_path = os.path.join("data", csv_filename)
     else:
         print("Invalid selection. Defaulting to Yahoo Finance.")
         source = "yahoo"
@@ -87,7 +91,7 @@ def main():
         exit_period = int(input("Enter the breakout exit period (ex, 15): "))
         strategy_params = {"entry_period": entry_period, "exit_period": exit_period}
 
-    # Golden Cross doesn't require user parameters — uses fixed 50/200 SMA
+    # Golden Cross doesn't require user parameters
 
     # Run the backtest using the Controller
     print("\nRunning backtest... please wait.\n")
@@ -95,6 +99,7 @@ def main():
     try:
         equity_curve, performance_metrics = controller.run_backtest(
             ticker=ticker,
+            source_path=csv_path,
             strategy_name=strategy_name,
             strategy_params=strategy_params
         )
@@ -117,7 +122,7 @@ def main():
         # Save results to /performance/ folder
         # ===============================
 
-        # Copy results Dataframe and add performance metrics as new columns
+        # Copy results DataFrame and add performance metrics as new columns
         results_to_save = equity_curve.copy()
         for metric, value in performance_metrics.items():
             results_to_save[metric] = value
@@ -127,7 +132,7 @@ def main():
 
         # Generate filename with timestamp
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        filename = f"performance/{ticker}_{strategy_name}_{timestamp}.csv"
+        filename = f"performance/{ticker or csv_filename.replace('.csv', '')}_{strategy_name}_{timestamp}.csv"
 
         # Save to CSV
         results_to_save.to_csv(filename)
