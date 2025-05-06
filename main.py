@@ -20,7 +20,7 @@ def main():
     controller = Controller()
 
     # Get stock ticker input
-    ticker = input("\nEnter the stock ticker symbol (ex, AAPL, MSFT, TSLA): ").strip().upper()
+    ticker = input("\nEnter the stock ticker symbol (ex. AAPL, MSFT, TSLA): ").strip().upper()
 
     # Display available strategies
     print("\nSelect a trading strategy:")
@@ -77,50 +77,33 @@ def main():
     print("\nRunning backtest... please wait.\n")
 
     try:
-        results = controller.run_backtest(
+        equity_curve, performance_metrics = controller.run_backtest(
             ticker=ticker,
             strategy_name=strategy_name,
             strategy_params=strategy_params
         )
 
-        # Display the first few rows of results
-        print(results.head())
+        # Display the first few rows of the equity curve
+        print(equity_curve.head())
 
         # ===============================
-        # Calculate and display performance metrics
+        # Display performance metrics
         # ===============================
 
-        # Calculate daily returns
-        results['Returns'] = results['Equity'].pct_change()
-
-        # Calculate performance metrics
-        cumulative_return = results['Equity'].iloc[-1] / results['Equity'].iloc[0] - 1
-        annualized_return = (1 + cumulative_return) ** (252 / len(results)) - 1
-        annualized_volatility = results['Returns'].std() * np.sqrt(252)
-        sharpe_ratio = annualized_return / annualized_volatility if annualized_volatility != 0 else 0
-        max_drawdown = ((results['Equity'].cummax() - results['Equity']) / results['Equity'].cummax()).max()
-
-        # Prepare performance summary
-        performance_summary = {
-            "Cumulative Return (%)": cumulative_return * 100,
-            "Annualized Return (%)": annualized_return * 100,
-            "Annualized Volatility (%)": annualized_volatility * 100,
-            "Sharpe Ratio": sharpe_ratio,
-            "Max Drawdown (%)": max_drawdown * 100
-        }
-
-        # Print performance summary
         print("\nPerformance Summary:")
-        for metric, value in performance_summary.items():
-            print(f"{metric}: {value:.2f}")
+        for metric, value in performance_metrics.items():
+            if "Return" in metric or "Volatility" in metric or "Drawdown" in metric:
+                print(f"{metric}: {value*100:.2f}%")
+            else:
+                print(f"{metric}: {value:.2f}")
 
         # ===============================
         # Save results to /performance/ folder
         # ===============================
 
-        # Copy results DataFrame and add performance metrics
-        results_to_save = results.copy()
-        for metric, value in performance_summary.items():
+        # Copy results Dataframe and add performance metrics as new columns
+        results_to_save = equity_curve.copy()
+        for metric, value in performance_metrics.items():
             results_to_save[metric] = value
 
         # Create performance directory if it doesn't exist

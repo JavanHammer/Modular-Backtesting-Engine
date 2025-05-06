@@ -115,7 +115,7 @@ class Backtester:
         Returns
         -------
         pd.DataFrame
-            DataFrame containing 'Date' and 'Equity', indexed by date.
+            DataFrame containing 'Date' and 'Portfolio Value', indexed by date.
         """
 
         # Loop through each day in the dataset
@@ -140,4 +140,4 @@ class Backtester:
             self.equity_curve.append((date, total_equity))
 
         # Convert equity history into a DataFrame for output
-        return pd.DataFrame(self.equity_curve, columns=['Date', 'Equity']).set_index('Date')
+        return pd.DataFrame(self.equity_curve, columns=['Date', 'Portfolio Value']).set_index('Date')

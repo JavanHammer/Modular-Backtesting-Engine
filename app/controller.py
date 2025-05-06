@@ -10,6 +10,7 @@ This acts as the central manager coordinating different modules together.
 import pandas as pd
 from app.data_handler import DataHandler
 from app.backtester import Backtester
+from app.results import Results
 from app.strategies import (
     SMACrossoverStrategy,
     RSIThresholdStrategy,
@@ -68,10 +69,14 @@ class Controller:
         # Initialize the backtester
         backtester = Backtester(data, strategy, initial_cash)
 
-        # Run the backtest and return results
-        results = backtester.run_backtest()
+        # Run the backtest and gete the equity curve
+        equity_curve = backtester.run_backtest()
 
-        return results
+        # Calculate the performance metrics
+        results_analyzer = Results(equity_curve)
+        performance_metrics = results_analyzer.calculate_performance_metrics()
+
+        return equity_curve, performance_metrics
 
     def _initialize_strategy(self, strategy_name: str, data: pd.DataFrame, params: dict):
         """
