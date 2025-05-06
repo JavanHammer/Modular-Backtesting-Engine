@@ -17,12 +17,12 @@ def test_controller_run_backtest_and_metrics(monkeypatch):
     })
 
     def mock_fetch_data(self, ticker, start_date=None, end_date=None):
-        return dummy_data
+        return dummy_data # My hardcoded dataframe
 
     from app.data_handler import DataHandler
     monkeypatch.setattr(DataHandler, "fetch_data", mock_fetch_data)
 
-    controller = Controller()
+    controller = Controller(source="yahoo")
 
     ticker = "AAPL"
     strategy_name = "sma_crossover"

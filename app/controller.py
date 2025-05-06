@@ -25,7 +25,8 @@ class Controller:
 
     Parameters
     ----------
-    None
+    source : str
+        Data source to use ('yahoo' or 'csv').
 
     Attributes
     ----------
@@ -33,20 +34,25 @@ class Controller:
         Instance responsible for fetching market data.
     """
 
-    def __init__(self):
+    def __init__(self, source: str = "yahoo"):
         """
         Initializes the Controller instance and sets up the DataHandler.
-        """
-        self.data_handler = DataHandler()
 
-    def run_backtest(self, ticker: str, strategy_name: str, strategy_params: dict, initial_cash: float = 100000.0) -> pd.DataFrame:
+        Parameters
+        ----------
+        source : str, optional
+            Data source to use ('yahoo' or 'csv'), default is 'yahoo'.
+        """
+        self.data_handler = DataHandler(source=source)
+
+    def run_backtest(self, ticker: str, strategy_name: str, strategy_params: dict, initial_cash: float = 100000.0) -> tuple:
         """
         Runs the full backtesting workflow based on user input.
 
         Parameters
         ----------
         ticker : str
-            The stock ticker symbol to fetch data for.
+            The stock ticker symbol or CSV file name to fetch data for.
         strategy_name : str
             The name of the strategy to use ('sma_crossover', 'rsi_threshold', etc.).
         strategy_params : dict
@@ -56,8 +62,8 @@ class Controller:
 
         Returns
         -------
-        pd.DataFrame
-            DataFrame containing the equity curve over time.
+        tuple
+            Tuple containing the equity curve DataFrame and performance metrics dictionary.
         """
 
         # Fetch historical data
@@ -69,7 +75,7 @@ class Controller:
         # Initialize the backtester
         backtester = Backtester(data, strategy, initial_cash)
 
-        # Run the backtest and gete the equity curve
+        # Run the backtest and get the equity curve
         equity_curve = backtester.run_backtest()
 
         # Calculate the performance metrics
@@ -109,4 +115,3 @@ class Controller:
             return BreakoutStrategy(data, **params)
         else:
             raise ValueError(f"Unknown strategy name: {strategy_name}")
-    

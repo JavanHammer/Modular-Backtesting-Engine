@@ -3,9 +3,10 @@ main.py
 
 Command-line interface for running the backtesting engine.
 
-Allows the user to select a trading strategy, input stock ticker,
+Allows the user to select a data source, trading strategy, input stock ticker or CSV,
 and execute a backtest using the modular backtesting system.
 """
+
 import os
 import numpy as np
 from datetime import datetime
@@ -16,11 +17,26 @@ def main():
     Main function to run the backtesting CLI workflow.
     """
 
-    # Initialize the Controller
-    controller = Controller()
+    # Select your data source
+    print("\nSelect data source:")
+    print("1. Yahoo Finance (live)")
+    print("2. Local CSV file") 
 
-    # Get stock ticker input
-    ticker = input("\nEnter the stock ticker symbol (ex. AAPL, MSFT, TSLA): ").strip().upper()
+    source_choice = input("\nEnter 1 or 2: ").strip()
+
+    if source_choice == "1":
+        source = "yahoo"
+        ticker = input("\nEnter the stock ticker symbol (ex. AAPL, MSFT, TSLA): ").strip().upper()
+    elif source_choice == "2":
+        source = "csv"
+        ticker = input("\nEnter the path to your local CSV file (ex. data/sample.csv): ").strip()
+    else:
+        print("Invalid selection. Defaulting to Yahoo Finance.")
+        source = "yahoo"
+        ticker = input("\nEnter the stock ticker symbol (ex. AAPL, MSFT, TSLA): ").strip().upper()
+
+    # Initialize the Controller
+    controller = Controller(source=source)
 
     # Display available strategies
     print("\nSelect a trading strategy:")
@@ -121,7 +137,6 @@ def main():
     except Exception as e:
         print(f"\nAn error occurred during the backtest: {str(e)}")
 
-# Ensures that the main() function runs only when this script is executed directly,
-# and not when it is imported as a module.
+
 if __name__ == "__main__":
     main()
