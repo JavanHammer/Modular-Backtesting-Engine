@@ -13,8 +13,7 @@ from app.strategies import (
     SMACrossoverStrategy,
     RSIThresholdStrategy,
     GoldenCrossStrategy,
-    MomentumStrategy,
-    BreakoutStrategy
+    MomentumStrategy
 )
 
 class Controller:
@@ -121,7 +120,5 @@ class Controller:
             return GoldenCrossStrategy(data)
         elif strategy_name == "momentum":
             return MomentumStrategy(data, **params)
-        elif strategy_name == "breakout":
-            return BreakoutStrategy(data, **params)
         else:
             raise ValueError(f"Unknown strategy name: {strategy_name}")

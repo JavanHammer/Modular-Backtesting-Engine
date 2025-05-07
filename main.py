@@ -55,7 +55,6 @@ def main():
     print("2. RSI Threshold Strategy")
     print("3. Golden Cross Strategy")
     print("4. Momentum Strategy (Rate of Change)")
-    print("5. Breakout Strategy")
 
     strategy_choice = input("\nEnter the number corresponding to your chosen strategy (1-5): ").strip()
 
@@ -63,8 +62,7 @@ def main():
         "1": "sma_crossover",
         "2": "rsi_threshold",
         "3": "golden_cross",
-        "4": "momentum",
-        "5": "breakout"
+        "4": "momentum"
     }
 
     if strategy_choice not in strategy_mapping:
@@ -90,11 +88,6 @@ def main():
         roc_threshold = float(input("Enter the momentum threshold for buying (ex, 0.05): "))
         strategy_params = {"roc_period": roc_period, "roc_threshold": roc_threshold}
 
-    elif strategy_name == "breakout":
-        entry_period = int(input("\nEnter the breakout entry period (ex, 25): "))
-        exit_period = int(input("Enter the breakout exit period (ex, 15): "))
-        strategy_params = {"entry_period": entry_period, "exit_period": exit_period}
-
     print("\nRunning backtest... please wait.\n")
 
     try:
@@ -104,6 +97,10 @@ def main():
             strategy_name=strategy_name,
             strategy_params=strategy_params
         )
+
+        if total_trades == 0:
+            print("\nNo trades were executed during the backtest.")
+            return # Exit cleanly
 
         print("\nPerformance Summary:")
         for metric, value in performance_metrics.items():
