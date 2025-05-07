@@ -34,7 +34,7 @@ Modular-Backtesting-Engine/
 
 ---
 
-## 🚀 Quick Start
+## Quick Start
 
 ### 1. Install dependencies
 ```bash
@@ -54,7 +54,7 @@ You'll be guided through:
 
 ---
 
-## 🛠 Supported Trading Strategies
+## Supported Trading Strategies
 
 | Strategy                    | Description |
 |------------------------------|-------------|
@@ -68,7 +68,7 @@ Each strategy is fully modular and easily extendable.
 
 ---
 
-## 📈 Performance Metrics Calculated
+## Performance Metrics Calculated
 
 After each backtest, the following are automatically computed:
 
@@ -81,7 +81,7 @@ Results are saved in the `/performance/` folder, including a copy of the equity 
 
 ---
 
-## 🧪 Running Unit Tests
+## Running Unit Tests
 
 Unit tests cover:
 - Data loading
@@ -98,7 +98,7 @@ pytest testing/
 
 ---
 
-## 📋 Documentation and Code Style
+## Documentation and Code Style
 
 This project follows strict documentation and commenting conventions:
 - Every **file** has a **module-level docstring**.
@@ -108,7 +108,7 @@ This project follows strict documentation and commenting conventions:
 
 ---
 
-## 🔥 Project Roadmap
+## Project Roadmap
 
 - **Phase 2**: Add Snowflake integration (store results in Snowflake DB)
 - **Phase 3**: Build Streamlit UI inside Snowflake (SiS)
@@ -117,7 +117,7 @@ This project follows strict documentation and commenting conventions:
 
 ---
 
-## 📜 License
+## License
 
 This project is currently for educational, research, and personal use only.
 
