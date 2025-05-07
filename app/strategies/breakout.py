@@ -15,7 +15,7 @@ class BreakoutStrategy:
     data : pd.DataFrame
         Historical market data.
     entry_period : int
-        Lookback period for entry breakou (default is 25).
+        Lookback period for entry breakout (default is 25).
     exit_period : int
         Lookback period for exit breakout (default is 15).
 

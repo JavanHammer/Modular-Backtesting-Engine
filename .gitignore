@@ -3,6 +3,9 @@ __pycache__/
 *.pyc
 *.pyo
 
+# Pytest cache files
+.pytest_cache/
+
 # Virtual environments
 .env/
 .venv/
@@ -18,13 +21,7 @@ venv/
 Thumbs.db
 
 # Results and outputs
-results/
-
-# Streamlit cache
-.streamlit/
+performance/
 
 # Test cache
 testing/__pycache__/
-
-# Jupyter Notebook checkpoints
-.ipynb_checkpoints/
