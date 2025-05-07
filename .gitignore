@@ -20,8 +20,9 @@ venv/
 .DS_Store
 Thumbs.db
 
-# Results and outputs
+# Backtest results and performance metrics
 performance/
 
 # Test cache
 testing/__pycache__/
+
