@@ -15,12 +15,14 @@ from app.controller import Controller
 def main():
     """
     Main function to run the backtesting CLI workflow.
+    Guides the user through selecting a data source, choosing a strategy,
+    inputting parameters, executing the backtest, and saving results.
     """
 
-    # Select your data source
+    # Prompt the user to select a data source
     print("\nSelect data source:")
     print("1. Yahoo Finance (live)")
-    print("2. Local CSV file") 
+    print("2. Local CSV file")
 
     source_choice = input("\nEnter 1 or 2: ").strip()
 
@@ -32,17 +34,19 @@ def main():
         ticker = input("\nEnter the stock ticker symbol (ex. AAPL, MSFT, TSLA): ").strip().upper()
     elif source_choice == "2":
         source = "csv"
-        csv_filename = input("Enter the CSV filename (just the file name, e.g., 'sample_prices.csv'): ").strip()
-        
+        csv_filename = input("Enter the CSV filename (ex. 'sample_prices.csv'): ").strip()
+
         if csv_filename == "":
             csv_filename = "sample_prices.csv"
 
         csv_path = os.path.join("data", csv_filename)
     else:
+        # Default to Yahoo Finance if invalid input
         print("Invalid selection. Defaulting to Yahoo Finance.")
         source = "yahoo"
         ticker = input("\nEnter the stock ticker symbol (ex. AAPL, MSFT, TSLA): ").strip().upper()
 
+    # Set the source name for later file saving
     if source == "yahoo":
         source_name = ticker
     else:
@@ -50,13 +54,14 @@ def main():
 
     controller = Controller(source=source)
 
+    # Prompt the user to select a trading strategy
     print("\nSelect a trading strategy:")
     print("1. SMA Crossover Strategy")
     print("2. RSI Threshold Strategy")
     print("3. Golden Cross Strategy")
     print("4. Momentum Strategy (Rate of Change)")
 
-    strategy_choice = input("\nEnter the number corresponding to your chosen strategy (1-5): ").strip()
+    strategy_choice = input("\nEnter the number corresponding to your chosen strategy (1-4): ").strip()
 
     strategy_mapping = {
         "1": "sma_crossover",
@@ -66,31 +71,32 @@ def main():
     }
 
     if strategy_choice not in strategy_mapping:
-        print("Invalid selection. Please run the program again and select a valid option (1-5).")
+        print("Invalid selection. Please run the program again and select a valid option (1-4).")
         return
 
     strategy_name = strategy_mapping[strategy_choice]
-
     strategy_params = {}
 
+    # Collect parameters for strategies that require them
     if strategy_name == "sma_crossover":
-        short_window = int(input("\nEnter the short-term SMA window (ex, 20): "))
-        long_window = int(input("Enter the long-term SMA window (ex, 50): "))
+        short_window = int(input("\nEnter the short-term SMA window (ex. 20): "))
+        long_window = int(input("Enter the long-term SMA window (ex. 50): "))
         strategy_params = {"short_window": short_window, "long_window": long_window}
 
     elif strategy_name == "rsi_threshold":
-        buy_threshold = int(input("\nEnter the RSI buy threshold (ex, 30): "))
-        sell_threshold = int(input("Enter the RSI sell threshold (ex, 70): "))
+        buy_threshold = int(input("\nEnter the RSI buy threshold (ex. 30): "))
+        sell_threshold = int(input("Enter the RSI sell threshold (ex. 70): "))
         strategy_params = {"buy_threshold": buy_threshold, "sell_threshold": sell_threshold}
 
     elif strategy_name == "momentum":
-        roc_period = int(input("\nEnter the Rate of Change (ROC) period (ex, 20): "))
-        roc_threshold = float(input("Enter the momentum threshold for buying (ex, 0.05): "))
+        roc_period = int(input("\nEnter the Rate of Change (ROC) period (ex. 20): "))
+        roc_threshold = float(input("Enter the momentum threshold for buying (ex. 0.05): "))
         strategy_params = {"roc_period": roc_period, "roc_threshold": roc_threshold}
 
     print("\nRunning backtest... please wait.\n")
 
     try:
+        # Execute backtest
         equity_curve, performance_metrics, total_trades = controller.run_backtest(
             ticker=ticker,
             source_path=csv_path,
@@ -98,43 +104,44 @@ def main():
             strategy_params=strategy_params
         )
 
+        # Check if any trades were made
         if total_trades == 0:
             print("\nNo trades were executed during the backtest.")
-            return # Exit cleanly
+            return
 
+        # Display performance summary
         print("\nPerformance Summary:")
+        print(f"Total Trades Executed: {total_trades}")
         for metric, value in performance_metrics.items():
             if "Return" in metric or "Volatility" in metric or "Drawdown" in metric:
-                print(f"{metric}: {value*100:.2f}%")
+                print(f"{metric}: {value*100:.8f}%")
             else:
-                print(f"{metric}: {value:.2f}")
+                print(f"{metric}: {value:.8f}")
 
-        print(f"Total Trades Executed: {total_trades}")
-
+        # Save results to performance/ folder
         os.makedirs('performance', exist_ok=True)
-
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
 
+        # Create filename including strategy parameters if any
         param_str = ''
         if strategy_params:
             param_str = '_' + '_'.join(f"{key}{value}" for key, value in strategy_params.items())
 
         filename = f"performance/{source_name}_{strategy_name}{param_str}_{timestamp}.csv"
 
+        # Combine metrics and equity curve into one CSV
         metrics_df = pd.DataFrame([performance_metrics])
         metrics_df.index = ['Performance Summary']
 
-        empty_row = pd.DataFrame([{}])
+        empty_row = pd.DataFrame([{}])  # Blank line between metrics and equity curve
 
         combined = pd.concat([metrics_df, empty_row, equity_curve])
-
         combined.to_csv(filename)
 
         print(f"\nResults saved to {filename}")
 
     except Exception as e:
         print(f"\nAn error occurred during the backtest: {str(e)}")
-
 
 if __name__ == "__main__":
     main()
