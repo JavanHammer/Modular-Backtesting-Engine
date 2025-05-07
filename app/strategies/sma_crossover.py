@@ -45,6 +45,10 @@ class SMACrossoverStrategy:
         """
         Determines whether to buy based on SMA crossover.
         """
+        # Skip rows where moving averages are not available yet
+        if pd.isna(row['short_sma']) or pd.isna(row['long_sma']):
+            return False
+
         # Get the integer location of the current row
         row_idx = self.data.index.get_loc(row.name)
 
@@ -54,6 +58,10 @@ class SMACrossoverStrategy:
 
         # Get previous row's short and long SMA values
         prev = self.data.iloc[row_idx - 1]
+
+        # Skip if previous row also has NaNs
+        if pd.isna(prev['short_sma']) or pd.isna(prev['long_sma']):
+            return False
 
         # Buy if short SMA crosses above long SMA
         return (prev['short_sma'] <= prev['long_sma']) and (row['short_sma'] > row['long_sma'])
@@ -62,6 +70,10 @@ class SMACrossoverStrategy:
         """
         Determines whether to sell based on SMA crossover.
         """
+        # Skip rows where moving averages are not available yet
+        if pd.isna(row['short_sma']) or pd.isna(row['long_sma']):
+            return False
+
         # Get the integer location of the current row
         row_idx = self.data.index.get_loc(row.name)
 
@@ -71,6 +83,10 @@ class SMACrossoverStrategy:
 
         # Get previous row's short and long SMA values
         prev = self.data.iloc[row_idx - 1]
+
+        # Skip if previous row also has NaNs
+        if pd.isna(prev['short_sma']) or pd.isna(prev['long_sma']):
+            return False
 
         # Sell if short SMA crosses below long SMA
         return (prev['short_sma'] >= prev['long_sma']) and (row['short_sma'] < row['long_sma'])

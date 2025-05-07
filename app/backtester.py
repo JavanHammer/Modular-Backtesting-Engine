@@ -119,6 +119,7 @@ class Backtester:
 
         # Loop through each day in the dataset
         for row_idx, (date, row) in enumerate(self.data.iterrows()):
+
             price = row['Close']
 
             # Check if strategy signals a buy

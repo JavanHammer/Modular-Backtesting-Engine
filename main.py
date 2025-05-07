@@ -9,6 +9,7 @@ and execute a backtest using the modular backtesting system.
 
 import os
 import numpy as np
+import pandas as pd
 from datetime import datetime
 from app.controller import Controller
 
@@ -33,11 +34,22 @@ def main():
     elif source_choice == "2":
         source = "csv"
         csv_filename = input("Enter the CSV filename (just the file name, e.g., 'sample_prices.csv'): ").strip()
+        
+        if csv_filename == "":
+            csv_filename = "sample_prices.csv"
+
         csv_path = os.path.join("data", csv_filename)
     else:
         print("Invalid selection. Defaulting to Yahoo Finance.")
         source = "yahoo"
         ticker = input("\nEnter the stock ticker symbol (ex. AAPL, MSFT, TSLA): ").strip().upper()
+
+    # This will be used later to help name my performance csv
+    if source == "yahoo":
+        source_name = ticker
+    else:
+        # If loading from CSV, use the CSV filename without extension
+        source_name = os.path.splitext(os.path.basename(csv_path))[0]
 
     # Initialize the Controller
     controller = Controller(source=source)
@@ -118,24 +130,43 @@ def main():
             else:
                 print(f"{metric}: {value:.2f}")
 
+        
         # ===============================
         # Save results to /performance/ folder
         # ===============================
 
-        # Copy results DataFrame and add performance metrics as new columns
-        results_to_save = equity_curve.copy()
-        for metric, value in performance_metrics.items():
-            results_to_save[metric] = value
-
         # Create performance directory if it doesn't exist
         os.makedirs('performance', exist_ok=True)
 
-        # Generate filename with timestamp
+        # Save results
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        filename = f"performance/{ticker or csv_filename.replace('.csv', '')}_{strategy_name}_{timestamp}.csv"
+
+        # Build a string for strategy parameters (example: short_window20_long_window50)
+        param_str = ''
+        if strategy_params:
+            param_str = '_' + '_'.join(f"{key}{value}" for key, value in strategy_params.items())
+
+        # Create full filename with parameters
+        filename = f"performance/{source_name}_{strategy_name}{param_str}_{timestamp}.csv"
+
+        # ---- NEW PART: Create metrics DataFrame ----
+
+        # Create a single-row DataFrame with performance metrics
+        metrics_df = pd.DataFrame([performance_metrics])
+
+        # Create a multiindex for pretty saving (optional, can also keep it simple)
+        metrics_df.index = ['Performance Summary']
+
+        # ---- Merge metrics and equity curve ----
+
+        # Add an empty row for better separation
+        empty_row = pd.DataFrame([{}])
+
+        # Concatenate metrics, empty row, and then equity curve
+        combined = pd.concat([metrics_df, empty_row, equity_curve])
 
         # Save to CSV
-        results_to_save.to_csv(filename)
+        combined.to_csv(filename)
 
         print(f"\nResults saved to {filename}")
 
