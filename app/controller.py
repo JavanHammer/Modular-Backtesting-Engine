@@ -92,7 +92,7 @@ class Controller:
         results_analyzer = Results(equity_curve)
         performance_metrics = results_analyzer.calculate_performance_metrics()
 
-        return equity_curve, performance_metrics
+        return equity_curve, performance_metrics, backtester.trades_executed
 
     def _initialize_strategy(self, strategy_name: str, data: pd.DataFrame, params: dict):
         """

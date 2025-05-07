@@ -54,6 +54,7 @@ class Backtester:
         self.cash = initial_cash
         self.position = 0
         self.equity_curve = []
+        self.trades_executed = 0
 
         # Validate data sufficiency for the selected strategy
         self._validate_data_for_strategy()
@@ -126,11 +127,13 @@ class Backtester:
             if self.strategy.should_buy(row) and self.cash >= price:
                 self.position += 1
                 self.cash -= price
+                self.trades_executed += 1
 
             # Check if strategy signals a sell
             elif self.strategy.should_sell(row) and self.position > 0:
                 self.position -= 1
                 self.cash += price
+                self.trades_executed += 1
 
             # Calculate current total equity: cash + (number of shares * current close price)
             total_equity = self.cash + self.position * price
