@@ -21,11 +21,11 @@ def test_sma_crossover_buy_and_sell_signals():
     # Current (index 3): short_sma = 11.5, long_sma = 12.0 → still no buy signal
 
     # Let's fix it properly
-    strategy.data['short_sma'].iloc[2] = 11.0  # lower than long_sma
-    strategy.data['long_sma'].iloc[2] = 11.5
+    strategy.data.loc[strategy.data.index[2], 'short_sma'] = 11.0  # lower than long_sma
+    strategy.data.loc[strategy.data.index[2], 'long_sma'] = 11.5
 
-    strategy.data['short_sma'].iloc[3] = 12.0  # crosses above
-    strategy.data['long_sma'].iloc[3] = 11.5
+    strategy.data.loc[strategy.data.index[3], 'short_sma'] = 12.0  # crosses above
+    strategy.data.loc[strategy.data.index[3], 'long_sma'] = 11.5
 
     row = strategy.data.iloc[3]
 

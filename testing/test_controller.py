@@ -9,7 +9,6 @@ from app.controller import Controller
 def test_controller_run_backtest_and_metrics(monkeypatch):
     """Test that Controller can run a backtest and return equity curve and metrics."""
 
-    # Dummy price data with SMA columns
     dummy_data = pd.DataFrame({
         "Close": [100, 102, 101, 105, 107],
         "short_sma": [99, 101, 100, 104, 106],
@@ -17,7 +16,7 @@ def test_controller_run_backtest_and_metrics(monkeypatch):
     })
 
     def mock_fetch_data(self):
-        return dummy_data # My hardcoded dataframe
+        return dummy_data
 
     from app.data_handler import DataHandler
     monkeypatch.setattr(DataHandler, "fetch_data", mock_fetch_data)
@@ -28,7 +27,8 @@ def test_controller_run_backtest_and_metrics(monkeypatch):
     strategy_name = "sma_crossover"
     strategy_params = {"short_window": 1, "long_window": 2}
 
-    equity_curve, metrics = controller.run_backtest(
+    # Corrected: expect three values
+    equity_curve, metrics, total_trades = controller.run_backtest(
         ticker=ticker,
         strategy_name=strategy_name,
         strategy_params=strategy_params
