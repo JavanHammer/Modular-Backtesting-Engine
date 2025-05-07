@@ -17,7 +17,6 @@ Modular-Backtesting-Engine/
 │   ├── results.py            # Calculates performance metrics (Sharpe, Return, Drawdown)
 │   └── strategies/
 │       ├── __init__.py        # Strategy imports
-│       ├── breakout.py        # Breakout trading strategy
 │       ├── golden_cross.py    # Golden Cross (50/200 SMA) strategy
 │       ├── momentum.py        # Momentum (Rate of Change) strategy
 │       ├── rsi_threshold.py   # RSI threshold strategy
@@ -62,7 +61,6 @@ You'll be guided through:
 | **RSI Threshold**            | Buy when RSI oversold, sell when overbought |
 | **Golden Cross**             | Buy on 50-day SMA crossing above 200-day SMA |
 | **Momentum (Rate of Change)**| Buy/sell based on momentum thresholds |
-| **Breakout**                 | Buy breakouts above past highs, sell breakdowns below lows |
 
 Each strategy is fully modular and easily extendable.
 
