@@ -2,7 +2,6 @@
 main.py
 
 Command-line interface for running the backtesting engine.
-
 Allows the user to select a data source, trading strategy, input stock ticker or CSV,
 and execute a backtest using the modular backtesting system.
 """
@@ -25,8 +24,8 @@ def main():
 
     source_choice = input("\nEnter 1 or 2: ").strip()
 
-    ticker = None  # Default
-    csv_path = None  # Default
+    ticker = None
+    csv_path = None
 
     if source_choice == "1":
         source = "yahoo"
@@ -44,17 +43,13 @@ def main():
         source = "yahoo"
         ticker = input("\nEnter the stock ticker symbol (ex. AAPL, MSFT, TSLA): ").strip().upper()
 
-    # This will be used later to help name my performance csv
     if source == "yahoo":
         source_name = ticker
     else:
-        # If loading from CSV, use the CSV filename without extension
         source_name = os.path.splitext(os.path.basename(csv_path))[0]
 
-    # Initialize the Controller
     controller = Controller(source=source)
 
-    # Display available strategies
     print("\nSelect a trading strategy:")
     print("1. SMA Crossover Strategy")
     print("2. RSI Threshold Strategy")
@@ -62,10 +57,8 @@ def main():
     print("4. Momentum Strategy (Rate of Change)")
     print("5. Breakout Strategy")
 
-    # Get user input for strategy selection
     strategy_choice = input("\nEnter the number corresponding to your chosen strategy (1-5): ").strip()
 
-    # Map user choice to strategy name
     strategy_mapping = {
         "1": "sma_crossover",
         "2": "rsi_threshold",
@@ -80,7 +73,6 @@ def main():
 
     strategy_name = strategy_mapping[strategy_choice]
 
-    # Prepare default parameters for each strategy
     strategy_params = {}
 
     if strategy_name == "sma_crossover":
@@ -95,33 +87,23 @@ def main():
 
     elif strategy_name == "momentum":
         roc_period = int(input("\nEnter the Rate of Change (ROC) period (ex, 20): "))
-        threshold = float(input("Enter the momentum threshold for buying (ex, 0.05): "))
-        strategy_params = {"roc_period": roc_period, "threshold": threshold}
+        roc_threshold = float(input("Enter the momentum threshold for buying (ex, 0.05): "))
+        strategy_params = {"roc_period": roc_period, "roc_threshold": roc_threshold}
 
     elif strategy_name == "breakout":
         entry_period = int(input("\nEnter the breakout entry period (ex, 25): "))
         exit_period = int(input("Enter the breakout exit period (ex, 15): "))
         strategy_params = {"entry_period": entry_period, "exit_period": exit_period}
 
-    # Golden Cross doesn't require user parameters
-
-    # Run the backtest using the Controller
     print("\nRunning backtest... please wait.\n")
 
     try:
-        equity_curve, performance_metrics = controller.run_backtest(
+        equity_curve, performance_metrics, total_trades = controller.run_backtest(
             ticker=ticker,
             source_path=csv_path,
             strategy_name=strategy_name,
             strategy_params=strategy_params
         )
-
-        # Display the first few rows of the equity curve
-        print(equity_curve.head())
-
-        # ===============================
-        # Display performance metrics
-        # ===============================
 
         print("\nPerformance Summary:")
         for metric, value in performance_metrics.items():
@@ -130,42 +112,25 @@ def main():
             else:
                 print(f"{metric}: {value:.2f}")
 
-        
-        # ===============================
-        # Save results to /performance/ folder
-        # ===============================
+        print(f"Total Trades Executed: {total_trades}")
 
-        # Create performance directory if it doesn't exist
         os.makedirs('performance', exist_ok=True)
 
-        # Save results
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
 
-        # Build a string for strategy parameters (example: short_window20_long_window50)
         param_str = ''
         if strategy_params:
             param_str = '_' + '_'.join(f"{key}{value}" for key, value in strategy_params.items())
 
-        # Create full filename with parameters
         filename = f"performance/{source_name}_{strategy_name}{param_str}_{timestamp}.csv"
 
-        # ---- NEW PART: Create metrics DataFrame ----
-
-        # Create a single-row DataFrame with performance metrics
         metrics_df = pd.DataFrame([performance_metrics])
-
-        # Create a multiindex for pretty saving (optional, can also keep it simple)
         metrics_df.index = ['Performance Summary']
 
-        # ---- Merge metrics and equity curve ----
-
-        # Add an empty row for better separation
         empty_row = pd.DataFrame([{}])
 
-        # Concatenate metrics, empty row, and then equity curve
         combined = pd.concat([metrics_df, empty_row, equity_curve])
 
-        # Save to CSV
         combined.to_csv(filename)
 
         print(f"\nResults saved to {filename}")
