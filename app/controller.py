@@ -79,7 +79,7 @@ class Controller:
         # Initialize the selected strategy
         strategy = self._initialize_strategy(strategy_name, data, strategy_params)
 
-        # IMPORTANT: Update data reference to strategy's modified data
+        # Update data reference to strategy's modified data
         data = strategy.data
 
         # Initialize the backtester

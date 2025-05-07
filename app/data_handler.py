@@ -71,7 +71,7 @@ class DataHandler:
         pd.DataFrame
             Historical daily price data.
         """
-        df = yf.download(ticker, period="3y", interval="1d")
+        df = yf.download(ticker, period="3y", interval="1d") # Gets the 3 year dataframe from Yahoo Finance
         df = df[["Close"]].dropna()
         df.index.name = "Date"
         return df
