@@ -34,7 +34,7 @@ def main():
         ticker = input("\nEnter the stock ticker symbol (ex. AAPL, MSFT, TSLA): ").strip().upper()
     elif source_choice == "2":
         source = "csv"
-        csv_filename = input("Enter the CSV filename (ex. 'sample_prices.csv'): ").strip()
+        csv_filename = input("Enter the CSV filename or press enter to use the 'sample_prices.csv'").strip()
 
         if csv_filename == "":
             csv_filename = "sample_prices.csv"
@@ -104,44 +104,75 @@ def main():
             strategy_params=strategy_params
         )
 
-        # Check if any trades were made
-        if total_trades == 0:
-            print("\nNo trades were executed during the backtest.")
+    except Exception as e:
+        # Check if Yahoo Finance download failed
+        if "Failed download" in str(e) or "No data" in str(e) or "Not enough data" in str(e):
+            print("\n^^^^^^^Yahoo Finance download failed or returned no data (possible rate limit or no data available).")
+
+            fallback = input("\nPress enter to use the default sample_prices.csv instead.\nOtherwise, type q to quit the program.").strip().lower()
+            if fallback == "":
+                # Switch to local CSV mode
+                source = "csv"
+                source_name = "sample_prices"
+                csv_path = os.path.join("data", "sample_prices.csv")
+
+                # Create a new Controller instance for CSV
+                controller = Controller(source="csv")
+
+                print("\nRunning backtest... please wait.\n")
+
+                try:
+                    # Rerun the backtest with sample_prices.csv
+                    equity_curve, performance_metrics, total_trades = controller.run_backtest(
+                        source_path=csv_path,
+                        strategy_name=strategy_name,
+                        strategy_params=strategy_params
+                    )
+                except Exception as e2:
+                    print(f"\nAn error occurred even when trying with sample_prices.csv: {str(e2)}")
+                    return
+            else:
+                print("\nExiting program. Please try again later.")
+                return
+        else:
+            print(f"\nAn unexpected error occurred: {str(e)}")
             return
 
-        # Display performance summary
-        print("\nPerformance Summary:")
-        print(f"Total Trades Executed: {total_trades}")
-        for metric, value in performance_metrics.items():
-            if "Return" in metric or "Volatility" in metric or "Drawdown" in metric:
-                print(f"{metric}: {value*100:.8f}%")
-            else:
-                print(f"{metric}: {value:.8f}")
+    # Check if any trades were made
+    if total_trades == 0:
+        print("\nNo trades were executed during the backtest.")
+        return
 
-        # Save results to performance/ folder
-        os.makedirs('performance', exist_ok=True)
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    # Display performance summary
+    print("\nPerformance Summary:")
+    print(f"Total Trades Executed: {total_trades}")
+    for metric, value in performance_metrics.items():
+        if "Return" in metric or "Volatility" in metric or "Drawdown" in metric:
+            print(f"{metric}: {value*100:.8f}%")
+        else:
+            print(f"{metric}: {value:.8f}")
 
-        # Create filename including strategy parameters if any
-        param_str = ''
-        if strategy_params:
-            param_str = '_' + '_'.join(f"{key}{value}" for key, value in strategy_params.items())
+    # Save results to performance/ folder
+    os.makedirs('performance', exist_ok=True)
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
 
-        filename = f"performance/{source_name}_{strategy_name}{param_str}_{timestamp}.csv"
+    # Create filename including strategy parameters if any
+    param_str = ''
+    if strategy_params:
+        param_str = '_' + '_'.join(f"{key}{value}" for key, value in strategy_params.items())
 
-        # Combine metrics and equity curve into one CSV
-        metrics_df = pd.DataFrame([performance_metrics])
-        metrics_df.index = ['Performance Summary']
+    filename = f"performance/{source_name}_{strategy_name}{param_str}_{timestamp}.csv"
 
-        empty_row = pd.DataFrame([{}])  # Blank line between metrics and equity curve
+    # Combine metrics and equity curve into one CSV
+    metrics_df = pd.DataFrame([performance_metrics])
+    metrics_df.index = ['Performance Summary']
 
-        combined = pd.concat([metrics_df, empty_row, equity_curve])
-        combined.to_csv(filename)
+    empty_row = pd.DataFrame([{}])  # Blank line between metrics and equity curve
 
-        print(f"\nResults saved to {filename}")
+    combined = pd.concat([metrics_df, empty_row, equity_curve])
+    combined.to_csv(filename)
 
-    except Exception as e:
-        print(f"\nAn error occurred during the backtest: {str(e)}")
+    print(f"\nResults saved to {filename}")
 
 if __name__ == "__main__":
     main()
