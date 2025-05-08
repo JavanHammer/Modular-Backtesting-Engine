@@ -117,8 +117,6 @@ This project follows strict documentation and commenting conventions:
 
 ## License
 
-This project is currently for educational, research, and personal use only.
-
 ---
 © 2025 Charles Javan Hammer. All rights reserved.
 
