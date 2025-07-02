@@ -106,15 +106,6 @@ This project follows strict documentation and commenting conventions:
 
 ---
 
-## Project Roadmap
-
-- **Phase 2**: Add Snowflake integration (store results in Snowflake DB)
-- **Phase 3**: Build Streamlit UI inside Snowflake (SiS)
-- **Phase 4**: Machine learning-driven strategy discovery (Databricks)
-- **Phase 5**: Monte Carlo simulation for strategy stress testing
-
----
-
 ## License
 
 © 2025 Charles Javan Hammer. All rights reserved.
