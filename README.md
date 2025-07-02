@@ -1,5 +1,4 @@
-# Modular Backtesting Engine (Phase 1)
-
+# Modular Backtesting Engine
 A clean, modular Python backtesting engine for systematic trading strategy research.
 
 Built for **local CLI-based backtesting**, with **unit-tested modules**, ready to evolve into full **cloud deployment** and **machine learning-driven strategy generation** in future phases.
